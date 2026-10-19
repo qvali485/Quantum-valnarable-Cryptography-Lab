@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shor’s Algorithm Lab — The Quantum Threat to RSA</title>
+<style>
+:root{--bg:#fff;--soft:#ecf8f1;--soft2:#d9f1e4;--ink:#0f3d2a;--mute:#3f6a55;--line:#b7dec8;--em:#10b981;--em2:#059669;--card:#fff;--warn:#fff7e0;--warnb:#e8c766;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#06130d;--soft:#0b2218;--soft2:#103121;--ink:#d8f5e5;--mute:#8dc4a6;--line:#1d4a34;--card:#0d2a1d;--warn:#2a2410;--warnb:#7a6a22}}
+:root[data-theme="dark"]{--bg:#06130d;--soft:#0b2218;--soft2:#103121;--ink:#d8f5e5;--mute:#8dc4a6;--line:#1d4a34;--card:#0d2a1d;--warn:#2a2410;--warnb:#7a6a22}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+section{padding:56px 20px}.wrap{max-width:1000px;margin:0 auto}.alt{background:var(--soft)}
+h1{font-size:clamp(2rem,6vw,3.4rem);line-height:1.1;margin:.2em 0}h2{font-size:clamp(1.5rem,4vw,2.1rem);margin:0 0 .4em}h3{margin:.2em 0}
+p{margin:.5em 0}.mute{color:var(--mute)}code,.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.grid{display:grid;gap:14px}.g3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+.btn{background:var(--em2);color:#fff;border:0;border-radius:999px;padding:12px 24px;font:600 1rem inherit;cursor:pointer;box-shadow:0 0 0 0 rgba(16,185,129,.5);transition:.2s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(16,185,129,.35)}.btn:disabled{opacity:.5;cursor:wait;transform:none}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--em2)}
+.hero{position:relative;overflow:hidden;background:linear-gradient(180deg,var(--soft),var(--bg));text-align:center;padding-top:72px}
+#bg{position:absolute;inset:0;width:100%;height:100%;opacity:.7}.hero .wrap{position:relative}
+.tag{display:inline-block;background:var(--soft2);border:1px solid var(--line);border-radius:999px;padding:2px 12px;font-size:.8rem;color:var(--mute)}
+.flow{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}.flow .card{flex:1 1 200px}.flow .arrow{align-self:center;color:var(--em2);font-size:1.4rem}
+.note{background:var(--warn);border:1px solid var(--warnb);border-radius:12px;padding:10px 14px;font-size:.92rem}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 14px;cursor:pointer;font:inherit}.chip:hover,.chip.on{background:var(--soft2);border-color:var(--em)}
+input[type=number]{font:inherit;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);width:180px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.err{color:#b42318;min-height:1.4em;font-size:.92rem}@media (prefers-color-scheme:dark){.err{color:#ff9d8f}}
+#sim{width:100%;height:260px;border-radius:16px;border:1px solid var(--line);background:var(--card);display:block}
+.bar{height:8px;background:var(--soft2);border-radius:99px;overflow:hidden;margin:12px 0}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--em2),#6ee7b7);transition:width .6s}
+.stages{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.stages li{border:1px solid var(--line);border-radius:12px;padding:10px 14px;opacity:.45;transition:.4s;background:var(--card)}
+.stages li.on{opacity:1;border-color:var(--em);box-shadow:0 0 18px rgba(16,185,129,.25)}.stages li.done{opacity:.85}
+.stages b{display:block}.stages span{font-size:.92rem;color:var(--mute)}
+.res{display:none;text-align:center}.res.show{display:block;animation:pop .6s}
+@keyframes pop{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
+.fac{display:inline-block;min-width:90px;padding:14px 22px;margin:6px;font-size:1.8rem;font-weight:700;border-radius:16px;background:var(--soft2);border:2px solid var(--em);box-shadow:0 0 22px rgba(16,185,129,.35)}
+.scroll{overflow-x:auto}svg text{font-family:system-ui,sans-serif}
+.g{cursor:pointer}.g rect{fill:var(--card);stroke:var(--em2);stroke-width:1.5;transition:.2s}.g:hover rect,.g.on rect{fill:var(--soft2);stroke-width:3}
+details{border:1px solid var(--line);border-radius:14px;padding:10px 16px;background:var(--card)}summary{cursor:pointer;font-weight:700}
+.take{font-size:1.15rem;text-align:center;border:2px solid var(--em);border-radius:20px;padding:26px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}td,th{border:1px solid var(--line);padding:6px 10px;text-align:left}
+.lab{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.85rem;margin:6px 0}.lab .tag{background:var(--card)}
+.step{border-left:4px solid var(--em);background:var(--card);border-radius:0 12px 12px 0;padding:8px 14px;margin:8px 0;animation:pop .5s}.step b{display:block}.scrollbox{max-height:170px;overflow:auto;background:var(--soft);border-radius:10px;padding:8px;font-size:.82rem;margin-top:6px}
+select{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink)}input[type=range]{accent-color:#059669;width:150px}
+.jump{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:14px 20px;background:var(--soft)}.jump a{text-decoration:none}.mk{animation:pl 1.6s infinite}@keyframes pl{50%{r:11px;opacity:.6}}
+
+.cc{transition:.3s}.cc.hl{border-color:var(--em);box-shadow:0 0 18px rgba(16,185,129,.3)}.cc h3{font-size:1rem}
+</style></head><body>
+<section class="hero"><canvas id="bg"></canvas><div class="wrap">
+<span class="tag">Interactive educational demo</span>
+<h1>Can a Quantum Computer Break RSA?</h1>
+<p class="mute" style="max-width:680px;margin:0 auto 22px">Explore how Shor’s algorithm transforms integer factorization into a quantum-computing problem—and why post-quantum cryptography matters.</p>
+<div class="grid g3" style="text-align:left;margin-bottom:26px">
+<div class="card"><h3>RSA</h3><p class="mute">Public-key cryptography used for digital signatures and key establishment.</p></div>
+<div class="card"><h3>Shor’s algorithm</h3><p class="mute">A quantum algorithm that can factor integers efficiently in terms of input size, assuming a sufficiently capable fault-tolerant quantum computer.</p></div>
+<div class="card"><h3>PQC</h3><p class="mute">Cryptographic algorithms designed to resist attacks by both classical and quantum computers.</p></div></div>
+<button class="btn" onclick="document.getElementById('simsec').scrollIntoView();setTimeout(run,500)">Start the factoring simulation</button>
+</div></section>
+
+<nav class="jump"><a class="chip" href="#simsec">Factoring simulator</a><a class="chip" href="#circ">Quantum circuit</a><a class="chip" href="#maths">The maths</a><a class="chip" href="keys.html">Page 2: Keys, attacks &amp; PQC →</a></nav>
+<section><div class="wrap"><h2>How RSA Works</h2>
+<div class="flow">
+<div class="card"><span class="tag">1</span><p>Choose two secret primes <b>p</b> and <b>q</b>.</p><p class="mono">p = 17, q = 23</p></div><div class="arrow">→</div>
+<div class="card"><span class="tag">2</span><p>Multiply: <b>n = p × q</b>.</p><p class="mono">17 × 23 = 391</p></div><div class="arrow">→</div>
+<div class="card"><span class="tag">3</span><p>n becomes part of the <b>public key</b>.</p><p class="mono">(n = 391, e)</p></div><div class="arrow">→</div>
+<div class="card"><span class="tag">4</span><p>Security relies on the practical difficulty of recovering p and q from a sufficiently large n, when the key is generated correctly.</p></div></div>
+<p>Knowing n = 391 and recovering its prime factors gives back <b>17</b> and <b>23</b>.</p>
+<div class="note"><b>Toy example only.</b> Real RSA moduli are hundreds or thousands of bits long, and the security of actual RSA depends on more than modulus size (padding, key generation, protocol design).</div>
+<p>RSA isn’t broken by “finding a prediction.” The relevant mathematical weakness is <b>integer factorization</b>: an attacker who can factor a sufficiently large modulus can undermine RSA’s security.</p></div></section>
+
+<section class="alt" id="simsec"><div class="wrap"><h2>Enter an Integer. Explore Its Factors.</h2>
+<div class="note"><b>What is real here:</b> (1) the factors are found by a <u>real classical</u> routine (trial division) and verified; (2) the period r in Stage 4 is computed <u>classically</u> by brute force, to show the post-processing maths; (3) the quantum stages are a <u>conceptual animation</u>, not a quantum computation. This page does not run Shor’s algorithm on quantum hardware, and no measurement result is quantum-generated.</div>
+<div class="row" style="margin-top:12px"><label for="n">N =</label><input id="n" type="number" min="1" step="1" value="391" inputmode="numeric">
+<button class="btn" id="go" onclick="run()">Start quantum factoring simulation</button></div>
+<div class="chips" id="chips"></div><div class="err" id="err" role="alert"></div>
+<canvas id="sim" width="1000" height="260"></canvas>
+<div class="bar"><i id="pg"></i></div>
+<div class="grid g2"><ul class="stages" id="stages"></ul>
+<div><div class="card res" id="res"><p class="mute">Factors discovered</p><div id="facs"></div><p class="mono" id="verify" style="font-size:1.2rem"></p><p class="mute" id="how" style="font-size:.9rem"></p><button class="btn ghost" onclick="run()">Run again</button></div>
+<div class="card" id="idle"><p class="mute">Pick a number and start. Stages will appear on the left as the simulation progresses.</p></div></div></div></div></section>
+
+<section><div class="wrap"><h2>A Simplified Shor Circuit</h2>
+<p class="mute">Simplified conceptual circuit — not a working Qiskit implementation. Hover or tap a block.</p>
+<div class="scroll"><svg viewBox="0 0 900 230" style="min-width:760px;width:100%" id="circ">
+<text x="8" y="68" font-size="13" fill="currentColor">|0⟩ counting reg.</text><text x="8" y="158" font-size="13" fill="currentColor">|1⟩ work reg.</text>
+<g stroke="var(--em2)" stroke-width="1.5"><line x1="120" y1="64" x2="640" y2="64"/><line x1="120" y1="154" x2="560" y2="154"/></g>
+<g class="g" data-i="0"><rect x="130" y="40" width="60" height="150" rx="10" fill-opacity=".3"/><text x="160" y="120" text-anchor="middle" font-size="12" fill="currentColor">Init</text></g>
+<g class="g" data-i="1"><rect x="210" y="42" width="56" height="44" rx="10"/><text x="238" y="70" text-anchor="middle" fill="currentColor">H⊗t</text></g>
+<g class="g" data-i="2"><rect x="290" y="40" width="130" height="150" rx="10"/><text x="355" y="112" text-anchor="middle" font-size="13" fill="currentColor">aˣ mod N</text><text x="355" y="130" text-anchor="middle" font-size="11" fill="currentColor">modular exp.</text></g>
+<g class="g" data-i="3"><rect x="445" y="42" width="80" height="44" rx="10"/><text x="485" y="70" text-anchor="middle" fill="currentColor">QFT</text></g>
+<g class="g" data-i="4"><rect x="550" y="42" width="70" height="44" rx="10"/><text x="585" y="70" text-anchor="middle" fill="currentColor">Measure</text></g>
+<path d="M620 64 H680" stroke="var(--em2)" stroke-width="3" stroke-dasharray="4 4"/>
+<g class="g" data-i="5"><rect x="680" y="30" width="200" height="170" rx="14"/><text x="780" y="95" text-anchor="middle" fill="currentColor">Classical</text><text x="780" y="118" text-anchor="middle" font-size="12" fill="currentColor">continued fractions</text><text x="780" y="138" text-anchor="middle" font-size="12" fill="currentColor">→ r → gcd(aʳ/²±1, N)</text></g></svg></div>
+<div class="card" style="margin-top:10px"><b>In one sentence:</b> the quantum part only finds the loop length r, very fast. Everything else is school-level maths.</div>
+<div class="grid g3" style="margin-top:12px"><div class="card cc" data-i="0"><h3>1 · Setup: two notepads</h3><p class="mute">Think of two notepads. The top one will ask lots of questions at once. The bottom one starts at 1 and will hold the answers.</p></div><div class="card cc" data-i="1"><h3>2 · Hadamard gates: ask every question at once</h3><p class="mute">A normal computer tries x = 1, then 2, then 3… Here the top notepad holds all the x values at the same time, like a spinning coin that is not yet heads or tails.</p></div><div class="card cc" data-i="2"><h3>3 · Modular exponentiation: find the loop</h3><p class="mute">For every x at once, work out 2ˣ mod N. Because we keep only remainders, the answers go round in a loop, like hours on a clock. How long the loop is (called r) is the secret we want.</p></div><div class="card cc" data-i="3"><h3>4 · QFT: find the beat</h3><p class="mute">Like a music app that listens to a song and tells you its beat. The loop makes a repeating pattern, and the QFT turns that pattern into a few sharp spikes so the loop length stands out.</p></div><div class="card cc" data-i="4"><h3>5 · Measurement: take a snapshot</h3><p class="mute">Looking at the qubits forces one answer. It is picked by chance, but it very likely lands near a spike. One snapshot gives a hint about r, not the full answer.</p></div><div class="card cc" data-i="5"><h3>6 · Normal computer finishes the job</h3><p class="mute">A classical computer turns the hint into r with a fraction trick (continued fractions), then takes two gcds to get the factors, for example 17 and 23. If it fails, try again with a different guess.</p></div></div></div></section>
+<section class="alt" id="maths"><div class="wrap"><details open><summary>Understand the maths — 3 plain steps (N = 391)</summary>
+<p><b>Step 1 · Guess.</b> Pick a = 2 (any number sharing no factor with 391).</p>
+<p><b>Step 2 · Find the repeat length r.</b> Keep multiplying by 2 and keep only the remainder after dividing by 391: 2, 4, 8, 16 … Eventually you land back on 1. The number of steps taken is r. For 391, r = 88. This is the only hard part, and the part a quantum computer speeds up.</p>
+<p><b>Step 3 · Turn r into factors.</b> Go half-way: 2⁴⁴ mod 391 = 254. Now take two gcds (the biggest number dividing both): gcd(254 − 1, 391) = gcd(253, 391) = 23 and gcd(254 + 1, 391) = gcd(255, 391) = 17. Check: 17 × 23 = 391 ✓</p>
+<p><b>When it fails.</b> A repeat length alone isn’t enough. If r is odd, or the half-way value is 390 (that is, −1), both gcds come out as 1 or 391. Then just try another guess a.</p>
+<p><b>Where the QFT fits.</b> The quantum computer’s measurement gives a blurry fraction close to k/r. A classical trick (continued fractions) reads r off that fraction. Everything after the measurement is ordinary classical maths.</p></details></div></section>
+
+<section><div class="wrap" style="text-align:center"><h2>Next: How the Keys Are Made</h2><p class="mute">Build an RSA key pair and an ECDH key exchange step by step, then see what a quantum attacker changes.</p><a class="btn" href="keys.html" style="text-decoration:none;display:inline-block">Go to page 2 →</a></div></section>
+<script>
+/* ---------- Background + simulator visuals (one small particle engine) ---------- */
+const S={stage:0,p:0,r:0,a:0,N:0,seq:[],t:0};   // shared animation state, driven by run()
+function fit(c){const d=devicePixelRatio||1,b=c.getBoundingClientRect();c.width=b.width*d;c.height=b.height*d;c.getContext("2d").setTransform(d,0,0,d,0,0);return b}
+const bg=document.getElementById("bg"),sim=document.getElementById("sim");
+let bb=fit(bg),sb=fit(sim);addEventListener("resize",()=>{bb=fit(bg);sb=fit(sim)});
+const dots=Array.from({length:50},()=>({x:Math.random(),y:Math.random(),v:Math.random()*.0004+.0001,ph:Math.random()*6}));
+const green=(a)=>`rgba(16,185,129,${a})`;
+function drawBg(t){const c=bg.getContext("2d");c.clearRect(0,0,bb.width,bb.height);
+ for(let k=0;k<3;k++){c.beginPath();for(let x=0;x<=bb.width;x+=8){const y=bb.height*(.55+.08*k)+Math.sin(x/90+t/900+k)*18;x?c.lineTo(x,y):c.moveTo(x,y)}c.strokeStyle=green(.18);c.stroke()}
+ dots.forEach(d=>{d.x=(d.x+d.v)%1;const x=d.x*bb.width,y=d.y*bb.height+Math.sin(t/700+d.ph)*10;c.beginPath();c.arc(x,y,2.2,0,7);c.fillStyle=green(.5);c.fill()});
+ const cx=bb.width/2,cy=bb.height/2;for(let i=0;i<3;i++){const a=t/1200+i*2.1;c.beginPath();c.ellipse(cx,cy,bb.width*.3,bb.height*.12,i*1.05,0,7);c.strokeStyle=green(.08);c.stroke();c.beginPath();c.arc(cx+Math.cos(a)*bb.width*.3*Math.cos(i*1.05),cy+Math.sin(a)*bb.height*.12,3,0,7);c.fillStyle=green(.6);c.fill()}}
+const parts=Array.from({length:70},(_,i)=>({x:Math.random(),y:Math.random(),i}));
+function drawSim(t){const c=sim.getContext("2d"),W=sb.width,H=sb.height;c.clearRect(0,0,W,H);
+ const M=Math.min(64,Math.max(24,S.r*2||32)),st=S.stage;
+ // idle / stage 1: orbiting "atoms" around a central node
+ if(st<=1){for(let i=0;i<6;i++){const a=t/900+i;c.beginPath();c.ellipse(W/2,H/2,110+i*14,36+i*6,i*.5,0,7);c.strokeStyle=green(.15);c.stroke();c.beginPath();c.arc(W/2+Math.cos(a)*(110+i*14)*Math.cos(i*.5),H/2+Math.sin(a)*(36+i*6),4,0,7);c.fillStyle=green(.8);c.fill()}
+  c.beginPath();c.arc(W/2,H/2,16+3*Math.sin(t/300),0,7);c.fillStyle=green(.9);c.shadowColor="#10b981";c.shadowBlur=24;c.fill();c.shadowBlur=0;
+  c.fillStyle=getComputedStyle(document.body).color;c.font="600 20px system-ui";c.textAlign="center";c.fillText(S.N?"N = "+S.N:"Ready",W/2,H-20);return}
+ // stage 2+: bars = real values of a^x mod N (computed classically), plus a periodic wave
+ const bw=W/M,mx=Number(S.N)||1;
+ for(let x=0;x<M;x++){const v=S.seq[x]??0,h=(v/mx)*(H-60),on=st>=2;c.fillStyle=green(st>=4?.25:.35);c.fillRect(x*bw+1,H-20-h*Math.min(1,S.p*3),bw-2,h*Math.min(1,S.p*3))}
+ if(st>=2&&S.r){c.beginPath();for(let x=0;x<W;x+=4){const y=H/2+Math.cos((x/bw)/S.r*6.2832*1-t/400)*(st===2?60:30*(1-Math.min(1,(S.p)))+10);x?c.lineTo(x,y):c.moveTo(x,y)}c.strokeStyle=green(.9);c.lineWidth=2;c.shadowColor="#10b981";c.shadowBlur=12;c.stroke();c.shadowBlur=0;c.lineWidth=1}
+ // stage 3+: particles "collapse" onto the peaks (illustrative only)
+ if(st>=3&&S.r){const k=Math.max(1,Math.round(M/S.r));parts.forEach(q=>{const peak=((q.i%Math.max(1,Math.floor(M/S.r)||1))+1)*S.r*bw*1.0-bw/2;const tx=Math.min(W-10,peak),ty=H/2;const e=Math.min(1,S.p*1.2+(st>3?1:0));const x=q.x*W*(1-e)+tx*e,y=q.y*H*(1-e)+ty*e+Math.sin(t/200+q.i)*(1-e)*6;c.beginPath();c.arc(x,y,2.6,0,7);c.fillStyle=green(.8);c.fill()})}
+ c.fillStyle=getComputedStyle(document.body).color;c.font="12px system-ui";c.textAlign="left";c.globalAlpha=.7;c.fillText("Bars: aˣ mod N (computed classically). Waves/particles: conceptual animation, not a quantum measurement.",10,16);c.globalAlpha=1}
+(function loop(t){S.t=t;drawBg(t);drawSim(t);requestAnimationFrame(loop)})(0);
+
+/* ---------- Real classical maths (BigInt) ---------- */
+const gcd=(a,b)=>{while(b){[a,b]=[b,a%b]}return a};
+function modpow(b,e,m){let r=1n;b%=m;while(e>0n){if(e&1n)r=r*b%m;b=b*b%m;e>>=1n}return r}
+function trialFactor(n){const f=[];for(let p=2;p*p<=n;p++)while(n%p===0){f.push(p);n/=p}if(n>1)f.push(n);return f}  // real factoring routine
+function order(a,N){let x=a%N,r=1n;while(x!==1n){x=x*a%N;r++;if(r>2000000n)return null}return r}               // brute-force period (classical!)
+// Shor post-processing: try bases a until r is even and a^(r/2) != -1 mod N and a non-trivial gcd appears.
+function shorClassical(N){const tried=[];for(const a of [2n,3n,5n,7n,11n,13n,4n,6n,8n,9n,10n]){if(a>=N)continue;const g=gcd(a,N);
+  if(g>1n){tried.push({a,note:`gcd(${a}, ${N}) = ${g} — lucky guess already gives a factor`,f:g});return{tried,f:g,a,r:null}}
+  const r=order(a,N);if(!r){continue}
+  if(r%2n){tried.push({a,r,note:`r = ${r} is odd → try another a`});continue}
+  const h=modpow(a,r/2n,N);if(h===N-1n){tried.push({a,r,note:`a^(r/2) ≡ −1 (mod N) → trivial; try another a`});continue}
+  const g1=gcd(h-1n+N,N),g2=gcd(h+1n,N),f=[g1,g2].find(x=>x>1n&&x<N);
+  tried.push({a,r,h,g1,g2,note:`r = ${r}, a^(r/2) mod N = ${h}; gcd(${h-1n}, N) = ${g1}, gcd(${h+1n}, N) = ${g2}`,f});if(f)return{tried,f,a,r}}
+ return{tried,f:null}}
+
+/* ---------- UI wiring ---------- */
+const $=id=>document.getElementById(id),sleep=ms=>new Promise(r=>setTimeout(r,ms));
+let token=0;
+$("chips").innerHTML=[15,21,35,143,391,1009].map(v=>`<button class="chip" onclick="pick(${v})">${v}</button>`).join("");
+function pick(v){$("n").value=v;document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",c.textContent==v))}
+const STAGES=[["Stage 1 — Input preparation","Select N; the goal is to discover non-trivial factors."],["Stage 2 — Quantum period-finding concept","Conceptual: superposition over x, then aˣ mod N reveals a repeating pattern with period r."],["Stage 3 — Measurement","Conceptual: the state settles to a measured value; real hardware would return a random sample concentrated near multiples of 2ᵗ/r."],["Stage 4 — Classical post-processing","Candidate period r → check gcd(a^(r/2) − 1, N) and gcd(a^(r/2) + 1, N). (r is computed classically here.)"],["Stage 5 — Factors discovered","Reveal factors and verify p × q = N."]];
+$("stages").innerHTML=STAGES.map(s=>`<li><b>${s[0]}</b><span>${s[1]}</span></li>`).join("");
+function setStage(i,detail){S.stage=i+1;S.p=0;const L=[...$("stages").children];L.forEach((l,j)=>{l.className=j<i?"done":j==i?"on":""});if(detail)L[i].querySelector("span").innerHTML=STAGES[i][1]+"<br><b class='mono'>"+detail+"</b>";$("pg").style.width=(i+1)*20+"%"}
+async function ramp(ms,my){const s=performance.now();while(performance.now()-s<ms){if(my!==token)return false;S.p=(performance.now()-s)/ms;await sleep(30)}S.p=1;return true}
+function fail(m){$("err").textContent=m}
+async function run(){
+ const my=++token;$("err").textContent="";const raw=$("n").value.trim();
+ if(!/^\d+$/.test(raw))return fail("Please enter a positive whole number (digits only).");
+ const N=BigInt(raw);if(N<2n)return fail("N must be at least 2.");if(N>1000000000000n)return fail("This demo handles N up to 10¹² (small numbers only—real RSA is vastly larger).");
+ const fs=trialFactor(Number(N));
+ $("res").classList.remove("show");$("idle").style.display="none";$("go").disabled=true;S.N=N;S.stage=0;S.seq=[];S.r=0;
+ [...$("stages").children].forEach((l,i)=>{l.className="";l.querySelector("span").textContent=STAGES[i][1]});
+ if(fs.length===1&&BigInt(fs[0])===N){$("go").disabled=false;$("idle").style.display="";$("pg").style.width="0";S.stage=0;$("idle").innerHTML=`<p><b>${N} is prime.</b> Shor’s algorithm is intended for composite integers; a prime has no non-trivial factors. Try 15, 21, 35, 143 or 391.</p>`;return}
+ if(N%2n===0n){$("idle").style.display="";$("idle").innerHTML=`<p><b>${N} is even.</b> Shor’s algorithm assumes an odd composite (even numbers are trivially halved), but we continue with the classical check below.</p>`}
+ // Real classical routine finds the answer and the Shor-style post-processing trace.
+ const sh=N%2n===0n?{tried:[],f:2n,a:null,r:null}:shorClassical(N);
+ await (async()=>{
+ setStage(0,"N = "+N+" (composite)");if(!await ramp(1500,my))return;
+ if(sh.a&&sh.r){S.a=sh.a;S.r=Number(sh.r);const M=Math.min(64,Math.max(24,S.r*2));S.seq=Array.from({length:M},(_,x)=>Number(modpow(sh.a,BigInt(x),N)))}
+ else{S.r=8;S.seq=Array.from({length:32},(_,x)=>x%8*3+1)}
+ setStage(1,sh.a?`base a = ${sh.a}; bars show aˣ mod N, which repeats`:"periodic pattern (illustrative)");if(!await ramp(3200,my))return;
+ setStage(2,"illustrative collapse to a peak");if(!await ramp(2600,my))return;
+ setStage(3,sh.tried.map(t=>"a = "+t.a+": "+t.note).join(" | ")||"no post-processing needed");if(!await ramp(3400,my))return;
+ const small=BigInt(fs[0]);let p=sh.f&&sh.f>1n&&sh.f<N?sh.f:small;let q=N/p;
+ if(p>q)[p,q]=[q,p];
+ setStage(4);$("pg").style.width="100%";
+ const allPrime=fs.length===2;
+ $("facs").innerHTML=`<span class="fac">${p}</span><span style="font-size:1.6rem">×</span><span class="fac">${q}</span>`;
+ $("verify").textContent=`${p} × ${q} = ${p*q}  ✓`;
+ $("how").innerHTML=`Verified with classical trial division: prime factorization ${fs.join(" × ")}.${allPrime?"":" (N has more than two prime factors, so the two cards are a non-trivial split.)"}<br>Reminder: classical routine + conceptual animation, not a real quantum run.`;
+ $("res").classList.add("show");[...$("stages").children].forEach(l=>l.className="done");$("stages").lastElementChild.className="on";
+ })();
+ if(my===token)$("go").disabled=false;}
+
+/* ---------- Circuit: highlight the matching plain-language card ---------- */
+function tip(i){document.querySelectorAll("#circ .g").forEach(g=>g.classList.toggle("on",g.dataset.i==i));document.querySelectorAll(".cc").forEach(c=>c.classList.toggle("hl",c.dataset.i==i))}
+document.querySelectorAll("#circ .g").forEach(g=>["mouseenter","click"].forEach(e=>g.addEventListener(e,()=>tip(+g.dataset.i))));
+document.querySelectorAll(".cc").forEach(c=>c.addEventListener("mouseenter",()=>tip(+c.dataset.i)));tip(2);pick(391);
+
+</script></body></html>

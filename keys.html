@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RSA & ECC Keys, Attacks and PQC — Shor’s Algorithm Lab</title>
+<style>
+:root{--bg:#fff;--soft:#ecf8f1;--soft2:#d9f1e4;--ink:#0f3d2a;--mute:#3f6a55;--line:#b7dec8;--em:#10b981;--em2:#059669;--card:#fff;--warn:#fff7e0;--warnb:#e8c766;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#06130d;--soft:#0b2218;--soft2:#103121;--ink:#d8f5e5;--mute:#8dc4a6;--line:#1d4a34;--card:#0d2a1d;--warn:#2a2410;--warnb:#7a6a22}}
+:root[data-theme="dark"]{--bg:#06130d;--soft:#0b2218;--soft2:#103121;--ink:#d8f5e5;--mute:#8dc4a6;--line:#1d4a34;--card:#0d2a1d;--warn:#2a2410;--warnb:#7a6a22}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+section{padding:56px 20px}.wrap{max-width:1000px;margin:0 auto}.alt{background:var(--soft)}
+h1{font-size:clamp(2rem,6vw,3.4rem);line-height:1.1;margin:.2em 0}h2{font-size:clamp(1.5rem,4vw,2.1rem);margin:0 0 .4em}h3{margin:.2em 0}
+p{margin:.5em 0}.mute{color:var(--mute)}code,.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.grid{display:grid;gap:14px}.g3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+.btn{background:var(--em2);color:#fff;border:0;border-radius:999px;padding:12px 24px;font:600 1rem inherit;cursor:pointer;box-shadow:0 0 0 0 rgba(16,185,129,.5);transition:.2s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(16,185,129,.35)}.btn:disabled{opacity:.5;cursor:wait;transform:none}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--em2)}
+.hero{position:relative;overflow:hidden;background:linear-gradient(180deg,var(--soft),var(--bg));text-align:center;padding-top:72px}
+#bg{position:absolute;inset:0;width:100%;height:100%;opacity:.7}.hero .wrap{position:relative}
+.tag{display:inline-block;background:var(--soft2);border:1px solid var(--line);border-radius:999px;padding:2px 12px;font-size:.8rem;color:var(--mute)}
+.flow{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}.flow .card{flex:1 1 200px}.flow .arrow{align-self:center;color:var(--em2);font-size:1.4rem}
+.note{background:var(--warn);border:1px solid var(--warnb);border-radius:12px;padding:10px 14px;font-size:.92rem}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 14px;cursor:pointer;font:inherit}.chip:hover,.chip.on{background:var(--soft2);border-color:var(--em)}
+input[type=number]{font:inherit;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);width:180px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.err{color:#b42318;min-height:1.4em;font-size:.92rem}@media (prefers-color-scheme:dark){.err{color:#ff9d8f}}
+#sim{width:100%;height:260px;border-radius:16px;border:1px solid var(--line);background:var(--card);display:block}
+.bar{height:8px;background:var(--soft2);border-radius:99px;overflow:hidden;margin:12px 0}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--em2),#6ee7b7);transition:width .6s}
+.stages{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.stages li{border:1px solid var(--line);border-radius:12px;padding:10px 14px;opacity:.45;transition:.4s;background:var(--card)}
+.stages li.on{opacity:1;border-color:var(--em);box-shadow:0 0 18px rgba(16,185,129,.25)}.stages li.done{opacity:.85}
+.stages b{display:block}.stages span{font-size:.92rem;color:var(--mute)}
+.res{display:none;text-align:center}.res.show{display:block;animation:pop .6s}
+@keyframes pop{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
+.fac{display:inline-block;min-width:90px;padding:14px 22px;margin:6px;font-size:1.8rem;font-weight:700;border-radius:16px;background:var(--soft2);border:2px solid var(--em);box-shadow:0 0 22px rgba(16,185,129,.35)}
+.scroll{overflow-x:auto}svg text{font-family:system-ui,sans-serif}
+.g{cursor:pointer}.g rect{fill:var(--card);stroke:var(--em2);stroke-width:1.5;transition:.2s}.g:hover rect,.g.on rect{fill:var(--soft2);stroke-width:3}
+details{border:1px solid var(--line);border-radius:14px;padding:10px 16px;background:var(--card)}summary{cursor:pointer;font-weight:700}
+.take{font-size:1.15rem;text-align:center;border:2px solid var(--em);border-radius:20px;padding:26px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}td,th{border:1px solid var(--line);padding:6px 10px;text-align:left}
+.lab{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.85rem;margin:6px 0}.lab .tag{background:var(--card)}
+.step{border-left:4px solid var(--em);background:var(--card);border-radius:0 12px 12px 0;padding:8px 14px;margin:8px 0;animation:pop .5s}.step b{display:block}.scrollbox{max-height:170px;overflow:auto;background:var(--soft);border-radius:10px;padding:8px;font-size:.82rem;margin-top:6px}
+select{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink)}input[type=range]{accent-color:#059669;width:150px}
+.jump{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:14px 20px;background:var(--soft)}.jump a{text-decoration:none}.mk{animation:pl 1.6s infinite}@keyframes pl{50%{r:11px;opacity:.6}}
+
+.cc{transition:.3s}.cc.hl{border-color:var(--em);box-shadow:0 0 18px rgba(16,185,129,.3)}.cc h3{font-size:1rem}
+</style></head><body>
+<section class="hero" style="padding:44px 20px 30px"><div class="wrap"><span class="tag">Page 2 of 2</span><h1 style="font-size:clamp(1.8rem,5vw,2.6rem)">RSA &amp; ECC Keys, Attacks and PQC</h1><p class="mute" style="max-width:640px;margin:0 auto 16px">See exactly how the keys are made, why Shor’s algorithm breaks them, and what replaces them.</p><a class="btn ghost" href="index.html" style="text-decoration:none;display:inline-block">← Page 1: Shor’s algorithm</a></div></section>
+<nav class="jump"><a class="chip" href="#rsa">RSA keys</a><a class="chip" href="#ecc">ECC / ECDH</a><a class="chip" href="#attack">Quantum attacker</a><a class="chip" href="#pqc">PQC</a><a class="chip" href="index.html">← Page 1</a></nav>
+<section class="alt" id="rsa"><div class="wrap"><h2>Build an RSA Key Pair, Step by Step</h2>
+<p class="mute">Today RSA is mainly used for <b>digital signatures</b> (certificates, code signing). Modern key exchange mostly uses <b>ECDH</b> (next section). Shor’s algorithm breaks both. Change p, q or e and every step recalculates.</p>
+<div class="card"><div class="row"><label>p <select id="rp"></select></label><label>q <select id="rq"></select></label><label>e <select id="re"></select></label></div><div id="rsteps"></div></div>
+<div class="grid g2" style="margin-top:14px"><div class="card"><h3>Sign &amp; verify</h3><div class="row"><label>Message m <input id="rm" type="number" value="42"></label><button class="btn" onclick="rsaSign()">Sign</button></div><div id="rsig"></div></div>
+<div class="card"><h3>Attacker who can factor n</h3><p class="mute">Anyone who splits n into p × q can redo steps 3–5 and get your private key.</p><button class="btn ghost" onclick="rsaAttack()">Factor n and rebuild d</button><div id="ratt"></div></div></div></div></section>
+
+<section id="ecc"><div class="wrap"><h2>ECC &amp; ECDH Key Exchange, Step by Step</h2>
+<p class="mute">Elliptic-curve Diffie–Hellman (ECDH) lets two people agree on a shared secret over a public channel. It is the common way modern protocols (e.g. TLS 1.3, secure messaging) establish keys. This is a tiny teaching curve; real curves like P-256 use numbers about 77 digits long. Drag the sliders.</p>
+<div class="card"><b>The curve:</b> y² = x³ + 2x + 2 (mod 17). “Mod 17” means we only keep the remainder after dividing by 17, like a clock with 17 hours. Division by k means multiplying by k’s inverse on that clock. Base point <b>G = (5, 1)</b>; adding G to itself 19 times returns to the start (“∞”).</div>
+<div class="grid g2" style="margin-top:14px"><div class="card"><div class="row"><label>Alice’s secret a <input type="range" id="ea" min="1" max="18" value="7" oninput="eccGo()"> <b id="eav"></b></label></div><div class="row"><label>Bob’s secret b <input type="range" id="eb" min="1" max="18" value="11" oninput="eccGo()"> <b id="ebv"></b></label></div><div id="esteps"></div></div>
+<div class="card"><svg id="ecv" viewBox="0 0 340 340" style="width:100%"></svg><p class="mute" style="font-size:.85rem">Dots = every point on the curve. G base, A Alice’s public point, B Bob’s public point, S the shared secret.</p></div></div>
+<div class="card" style="margin-top:14px"><h3>Attacker who can solve the discrete log</h3><p class="mute">An eavesdropper sees G, A and B. To get the secret they must find a from A = a·G. On this toy curve that’s trial and error.</p><button class="btn ghost" onclick="eccAttack()">Recover Alice’s secret</button><div id="eatt"></div></div>
+<div class="scroll card" style="margin-top:14px"><table><tr><th></th><th>RSA</th><th>ECC</th></tr><tr><td>Typical job today</td><td>Digital signatures (legacy: key transport)</td><td>Key agreement (ECDH/ECDHE) and signatures (ECDSA, EdDSA)</td></tr><tr><td>Hard problem</td><td>Factoring n</td><td>Finding a from A = a·G</td></tr><tr><td>Broken by Shor?</td><td>Yes</td><td>Yes</td></tr><tr><td>PQC replacement</td><td>ML-DSA / SLH-DSA</td><td>ML-KEM (keys); ML-DSA / SLH-DSA (signatures)</td></tr></table></div></div></section>
+
+<section class="alt" id="attack"><div class="wrap"><h2>What If an Attacker Had a Cryptographically Relevant Quantum Computer?</h2>
+<div class="grid g2"><div class="card"><ol style="margin:0;padding-left:20px">
+<li>The attacker obtains an RSA public key: modulus N and exponent e.</li><li>They run a sufficiently capable implementation of Shor’s algorithm to factor N.</li><li>The factors let them compute the private-key parameters, under the usual RSA key-generation assumptions.</li><li>They may then decrypt captured RSA-encrypted key material or forge RSA signatures, depending on protocol, available data and key usage.</li></ol></div>
+<div class="card"><p><b>Encryption / key transport:</b> captured ciphertexts can be decrypted later (“harvest now, decrypt later”) once the private key is recovered.</p><p><b>Signatures:</b> a recovered key lets an attacker forge signatures going forward; old signatures aren’t “decrypted.”</p>
+<p>A public key alone does not reveal messages. Practical attacks depend on the protocol, captured traffic, and whether the private key is recovered.</p></div></div>
+<div class="note" style="margin-top:12px"><b>Reality check:</b> today’s classical computers and small quantum simulators cannot factor real-world RSA moduli using Shor’s algorithm. Nothing here implies arbitrary RSA-2048 keys can be broken with current quantum hardware.</div></div></section>
+
+<section id="pqc"><div class="wrap"><h2>Why Post-Quantum Cryptography Matters</h2>
+<p>Shor’s algorithm threatens RSA and conventional elliptic-curve cryptography because both rely on problems (factoring, discrete logarithms) that a sufficiently powerful fault-tolerant quantum computer could solve efficiently.</p>
+<div class="grid g3"><div class="card"><h3>ML-KEM</h3><p class="mute">Standardized for quantum-resistant key establishment.</p></div><div class="card"><h3>ML-DSA</h3><p class="mute">Standardized for quantum-resistant digital signatures.</p></div><div class="card"><h3>SLH-DSA</h3><p class="mute">A hash-based post-quantum digital signature standard.</p></div></div>
+<p><b>AES is different.</b> Grover’s algorithm gives only a quadratic speedup for idealized unstructured key search—not the polynomial-time break Shor gives against RSA. Larger symmetric keys keep comfortable margins.</p>
+<p><b>Migration is a program, not a swap:</b> cryptographic inventory, algorithm selection, protocol compatibility, testing, and cryptographic agility so you can change algorithms again.</p></div></section>
+
+<section><div class="wrap"><div class="take">Shor’s algorithm demonstrates why sufficiently powerful quantum computers could threaten RSA and conventional elliptic-curve cryptography. The threat is not that quantum computers magically guess a private key; it is that quantum period-finding can enable efficient integer factorization. Studying this algorithm helps explain why the transition to post-quantum cryptography is important.</div></div></section>
+<script>
+const $=id=>document.getElementById(id);
+/* ---------- Real classical maths (BigInt) ---------- */
+const gcd=(a,b)=>{while(b){[a,b]=[b,a%b]}return a};
+function modpow(b,e,m){let r=1n;b%=m;while(e>0n){if(e&1n)r=r*b%m;b=b*b%m;e>>=1n}return r}
+function trialFactor(n){const f=[];for(let p=2;p*p<=n;p++)while(n%p===0){f.push(p);n/=p}if(n>1)f.push(n);return f}  // real factoring routine
+function order(a,N){let x=a%N,r=1n;while(x!==1n){x=x*a%N;r++;if(r>2000000n)return null}return r}               // brute-force period (classical!)
+// Shor post-processing: try bases a until r is even and a^(r/2) != -1 mod N and a non-trivial gcd appears.
+function shorClassical(N){const tried=[];for(const a of [2n,3n,5n,7n,11n,13n,4n,6n,8n,9n,10n]){if(a>=N)continue;const g=gcd(a,N);
+  if(g>1n){tried.push({a,note:`gcd(${a}, ${N}) = ${g} — lucky guess already gives a factor`,f:g});return{tried,f:g,a,r:null}}
+  const r=order(a,N);if(!r){continue}
+  if(r%2n){tried.push({a,r,note:`r = ${r} is odd → try another a`});continue}
+  const h=modpow(a,r/2n,N);if(h===N-1n){tried.push({a,r,note:`a^(r/2) ≡ −1 (mod N) → trivial; try another a`});continue}
+  const g1=gcd(h-1n+N,N),g2=gcd(h+1n,N),f=[g1,g2].find(x=>x>1n&&x<N);
+  tried.push({a,r,h,g1,g2,note:`r = ${r}, a^(r/2) mod N = ${h}; gcd(${h-1n}, N) = ${g1}, gcd(${h+1n}, N) = ${g2}`,f});if(f)return{tried,f,a,r}}
+ return{tried,f:null}}
+
+/* ---------- RSA key generation (real BigInt/Euclid maths, toy sizes) ---------- */
+let R=null;const PR=[11,13,17,19,23,29,31,37,41,43,47],ES=[3,5,7,17];
+const fill=(id,a,v)=>{$(id).innerHTML=a.map(x=>`<option${x==v?" selected":""}>${x}</option>`).join("");$(id).onchange=rsaGen};
+fill("rp",PR,17);fill("rq",PR,23);fill("re",ES,5);
+// Extended Euclid: returns gcd, x with e*x + phi*y = gcd, and the division rows shown to the learner
+function egcd(a,b){const rows=[];let [r0,r1,s0,s1]=[a,b,1,0];while(r1){const q=Math.floor(r0/r1);rows.push(`${r0} = ${q} × ${r1} + ${r0-q*r1}`);[r0,r1]=[r1,r0-q*r1];[s0,s1]=[s1,s0-q*s1]}return{g:r0,x:s0,rows}}
+const st=(t,f,w)=>`<div class="step"><b>${t}</b><div class="mono">${f}</div><span class="mute">${w}</span></div>`;
+function rsaGen(){const p=+$("rp").value,q=+$("rq").value,e=+$("re").value,o=$("rsteps");$("rsig").innerHTML="";$("ratt").innerHTML="";
+ if(p==q){R=null;o.innerHTML=`<p class="err">p and q must be different primes.</p>`;return}
+ const n=p*q,phi=(p-1)*(q-1),E=egcd(e,phi);
+ if(E.g!=1){R=null;o.innerHTML=`<p class="err">e = ${e} shares a factor with φ = ${phi}, so no private key exists. Pick another e.</p>`;return}
+ const d=((E.x%phi)+phi)%phi;R={p,q,e,n,phi,d};
+ o.innerHTML=st("1 · Two secret primes",`p = ${p}, q = ${q}`,"A prime is divisible only by 1 and itself. Keep these secret.")+
+ st("2 · Multiply → modulus n",`n = ${p} × ${q} = ${n}`,"n is public. Multiplying is easy; splitting a huge n back apart is the hard part.")+
+ st("3 · Totient φ",`φ = (p−1)(q−1) = ${p-1} × ${q-1} = ${phi}`,"φ counts the numbers below n that share no factor with n. Without p and q, nobody can easily compute it.")+
+ st("4 · Public exponent e",`e = ${e}, gcd(${e}, ${phi}) = 1 ✓`,"e must share no factor with φ, or step 5 cannot work.")+
+ st("5 · Private exponent d",`d × e ≡ 1 (mod φ) → d = ${d}`,`Euclid’s algorithm:<br>${E.rows.join("<br>")}<br>Check: ${d} × ${e} = ${d*e} = ${(d*e-1)/phi} × ${phi} + 1 ✓`)+
+ st("6 · Your keys",`Public (n=${n}, e=${e}) · Private (n=${n}, d=${d})`,"Publish the public key. Never share d, p, q or φ.")}
+function rsaSign(){if(!R)return;const n=BigInt(R.n),m=BigInt($("rm").value||0);
+ if(m<1n||m>=n){$("rsig").innerHTML=`<p class="err">Pick a message number from 1 to ${R.n-1}.</p>`;return}
+ const s=modpow(m,BigInt(R.d),n),v=modpow(s,BigInt(R.e),n);
+ $("rsig").innerHTML=`<p class="mono">sign: s = m<sup>d</sup> mod n = ${m}<sup>${R.d}</sup> mod ${R.n} = <b>${s}</b></p><p class="mono">verify: s<sup>e</sup> mod n = ${s}<sup>${R.e}</sup> mod ${R.n} = <b>${v}</b> ${v==m?"✓ equals m":"✗"}</p><p class="mute">Only the holder of d can make s; anyone can check it with (n, e). Real systems sign a padded hash, not the raw message.</p>`}
+function rsaAttack(){if(!R)return;const f=trialFactor(R.n),ph=(f[0]-1)*(f[1]-1),E=egcd(R.e,ph),d=((E.x%ph)+ph)%ph;
+ $("ratt").innerHTML=`<p class="mono">n = ${R.n} → ${f.join(" × ")}<br>φ = ${ph}<br>d = ${d} ${d==R.d?"✓ same as the private key":""}</p><p class="mute">Trivial for a normal PC at this size. For a 2048-bit n, only Shor’s algorithm on a large fault-tolerant quantum computer would do this efficiently.</p>`}
+
+/* ---------- Elliptic curve y² = x³ + 2x + 2 over GF(17), G = (5,1), order 19 ---------- */
+const EP=17,EA=2,EB=2,GP=[5,1],md=(x,m=EP)=>((x%m)+m)%m,key=P=>P?`(${P[0]}, ${P[1]})`:"∞";
+const einv=x=>{x=md(x);for(let i=1;i<EP;i++)if(md(x*i)===1)return i};
+// Point addition: slope λ, then x3 = λ²−x1−x2, y3 = λ(x1−x3)−y1 (all mod 17). Returns the point and a plain-text explanation.
+function eadd(P,Q){if(!P)return{pt:Q,why:""};if(!Q)return{pt:P,why:""};const[x1,y1]=P,[x2,y2]=Q;
+ if(x1==x2&&md(y1+y2)==0)return{pt:null,why:"vertical line → ∞"};let lam,f;
+ if(x1==x2){lam=md((3*x1*x1+EA)*einv(2*y1));f=`double: λ=(3·${x1}²+${EA})÷(2·${y1}) = ${lam}`}else{lam=md((y2-y1)*einv(x2-x1));f=`λ=(${y2}−${y1})÷(${x2}−${x1}) = ${lam}`}
+ const x3=md(lam*lam-x1-x2),y3=md(lam*(x1-x3)-y1);return{pt:[x3,y3],why:`${f}; x=${lam}²−${x1}−${x2} = ${x3}; y=${lam}(${x1}−${x3})−${y1} = ${y3}`}}
+function emul(k,P){let T=null;const rows=[];for(let i=1;i<=k;i++){const r=i==1?{pt:P,why:"start"}:eadd(T,P);T=r.pt;rows.push(`${i}·P = ${key(T)} ← ${r.why}`)}return{pt:T,rows}}
+const EPTS=[];for(let x=0;x<EP;x++)for(let y=0;y<EP;y++)if(md(y*y)==md(x**3+EA*x+EB))EPTS.push([x,y]);
+function eccDraw(pts){const s=19,o=24,X=x=>o+x*s,Y=y=>o+(16-y)*s;let h="";
+ for(let i=0;i<EP;i++)h+=`<line x1="${X(i)}" y1="${o}" x2="${X(i)}" y2="${Y(0)}" stroke="var(--line)" stroke-width=".5"/><line x1="${o}" y1="${Y(i)}" x2="${X(16)}" y2="${Y(i)}" stroke="var(--line)" stroke-width=".5"/>`;
+ EPTS.forEach(p=>h+=`<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="3.5" fill="var(--em)" opacity=".5"/>`);
+ pts.forEach(([P,c,l])=>{h+=`<circle class="mk" cx="${X(P[0])}" cy="${Y(P[1])}" r="8" fill="none" stroke="${c}" stroke-width="3"/><text x="${X(P[0])+10}" y="${Y(P[1])-8}" font-weight="700" font-size="14" fill="${c}">${l}</text>`});$("ecv").innerHTML=h}
+function eccGo(){const a=+$("ea").value,b=+$("eb").value;$("eav").textContent=a;$("ebv").textContent=b;$("eatt").innerHTML="";
+ const A=emul(a,GP),B=emul(b,GP),S1=emul(a,B.pt),S2=emul(b,A.pt),box=r=>`<div class="scrollbox mono">${r.rows.join("<br>")}</div>`;
+ $("esteps").innerHTML=st("1 · Alice’s public point",`A = a·G = ${a}·${key(GP)} = ${key(A.pt)}`,`Add G to itself ${a} times. Each addition draws a line through two points, finds the third crossing, and mirrors it:`+box(A))+
+ st("2 · Bob’s public point",`B = b·G = ${b}·${key(GP)} = ${key(B.pt)}`,`Same idea, ${b} additions:`+box(B))+
+ st("3 · They swap A and B in public",`Alice has B = ${key(B.pt)}, Bob has A = ${key(A.pt)}`,"Only a and b stay secret.")+
+ st("4 · Both compute the same secret",`Alice: a·B = ${key(S1.pt)} &nbsp; Bob: b·A = ${key(S2.pt)} ${key(S1.pt)==key(S2.pt)?"✓ equal":"✗"}`,"Both equal (a×b)·G. Real protocols feed this point’s x-coordinate into a key-derivation function to make an AES key."+`<details><summary>Show Alice’s steps for a·B</summary>${box(S1)}</details>`);
+ eccDraw([[GP,"#0f3d2a","G"],[A.pt,"#059669","A"],[B.pt,"#0ea5e9","B"],[S1.pt,"#d97706","S"]]);window.ECC={a,A:A.pt,B:B.pt}}
+function eccAttack(){const{A,B}=ECC;let T=null,k=0;do{T=eadd(T,GP).pt;k++}while(key(T)!=key(A)&&k<19);
+ const S=emul(k,B).pt;$("eatt").innerHTML=`<p class="mono">Tried k = 1, 2, 3 … until k·G = ${key(A)}: found <b>k = ${k}</b> after ${k} tries → shared secret ${key(S)}.</p><p class="mute">Real curves have about 2²⁵⁶ points, so classical trial is hopeless (best known classical attacks still need roughly 2¹²⁸ steps). Shor’s algorithm solves this “discrete logarithm” problem efficiently on a large fault-tolerant quantum computer.</p>`}
+rsaGen();eccGo();
+
+
+</script></body></html>
